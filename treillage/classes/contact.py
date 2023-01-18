@@ -6,6 +6,7 @@ class Contact:
     def __init__(
         self,
         firstName: str,
+        metadata: List[dict],
         middleName: str = "",
         lastName: str = "",
         nickname: str = "",
@@ -25,7 +26,6 @@ class Contact:
         personTypes: List[str] = [],
         hashtags: List[str] = [],
         customFields: dict = {},
-        metadata: List[dict] = [],
     ):
         self.firstName = firstName
         self.middleName = middleName

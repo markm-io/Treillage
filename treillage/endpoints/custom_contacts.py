@@ -1,5 +1,6 @@
+from typing import List
+import json
 from .. import ConnectionManager
-from ._decorators import get_item, post_item
 from ..classes import Contact
 
 
@@ -7,12 +8,13 @@ from ..classes import Contact
 #                             Custom Contacts
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-
-@get_item
+# GET Custom Contact Metadata
 async def get_contact_metadata(connection: ConnectionManager):
-    return f"/core/custom-contacts-meta"
+    endpoint = f"/core/custom-contacts-meta"
+    return await connection.get(endpoint)
 
 
-@post_item
-async def create_custom_contact(connection: ConnectionManager, contact=Contact):
-    return f"/core/custom-contacts", contact.build_body_custom()
+# POST Create Custom Contact
+async def create_custom_contact(connection: ConnectionManager, body=Contact):
+    endpoint = f"/core/custom-contacts"
+    return await connection.post(endpoint, body.build_body_custom(), {})

@@ -1,7 +1,7 @@
 from typing import List, Union
 from .. import ConnectionManager
-from ._decorators import get_item, get_item_list, requested_fields, post_item
 from ..classes import Project
+from .list_paginator import list_paginator
 
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 #                              Projects
@@ -9,43 +9,56 @@ from ..classes import Project
 
 
 # GET Project
-@requested_fields
-@get_item
-def get_project(
+async def get_project(
     connection: ConnectionManager,
     project_id: int,
     requested_fields: List[str] = [""],
 ):
-    return f"/core/project/{project_id}"
+    endpoint = f"/core/project/{project_id}"
+    params = dict()
+    if not requested_fields == [""]:
+        fields = ",".join(*[requested_fields])
+        params["requestedFields"] = fields
+
+    return await connection.get(endpoint, params)
 
 
 # GET Project List
-@requested_fields
-@get_item_list
-def get_project_list(
+async def get_project_list(
     connection: ConnectionManager,
     requested_fields: List[str] = [""],
 ):
-    return "/core/projects"
+    endpoint = "/core/projects"
+    params = dict()
+    if not requested_fields == [""]:
+        fields = ",".join(*[requested_fields])
+        params["requestedFields"] = fields
+
+    async for project in list_paginator(connection, endpoint, params):
+        yield project
 
 
 # GET Project Vitals
-@requested_fields
-@get_item
-def get_project_vitals(
+async def get_project_vitals(
     connection: ConnectionManager,
     project_id: int,
     requested_fields: List[str] = [""],
 ):
-    return f"/core/projects/{project_id}/vitals"
+    endpoint = f"/core/project/{project_id}"
+    params = dict()
+    if not requested_fields == [""]:
+        fields = ",".join(*[requested_fields])
+        params["requestedFields"] = fields
+
+    return await connection.get(endpoint, params)
 
 
 # POST Create Project
-@post_item
-def create_project(
+async def create_project(
     connection: ConnectionManager,
     project: Project,
 ):
+    project = vars(project)
+    endpoint = f"/core/projects"
 
-    body = vars(project)
-    return f"/core/projects", body
+    return await connection.post(endpoint, project)
