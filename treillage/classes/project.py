@@ -10,7 +10,8 @@ class Project:
         projectName: str,
         clientPartnerId: str = "",
         projectTypePartnerId: str = "",
-        incident_date: str = "",
+        number: str = "",
+        incidentDate: str = "",
         description: str = "",
     ):
         if type(clientId) == Identifier:
@@ -25,7 +26,7 @@ class Project:
                 native=projectTypeId, partner=projectTypePartnerId
             )
         self.projectName = projectName
-        self.incidentDate = incident_date
+        self.incidentDate = incidentDate
         self.description = description
 
     def __repr__(self) -> str:

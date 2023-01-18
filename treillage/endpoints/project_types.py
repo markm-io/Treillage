@@ -1,7 +1,7 @@
 from typing import List
 from .. import ConnectionManager
 from .. import TreillageTypeError, TreillageValueError
-from ._decorators import get_item, get_item_list, requested_fields
+from .list_paginator import list_paginator
 
 
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -10,61 +10,87 @@ from ._decorators import get_item, get_item_list, requested_fields
 
 
 # GET Project Type
-@requested_fields
-@get_item
-def get_project_type(
+async def get_project_type(
     connection: ConnectionManager,
     project_type_id: int,
     requested_fields: List[str] = [""],
 ):
-    return f"/core/projecttypes/{project_type_id}"
+    endpoint = f"/core/projecttypes/{project_type_id}"
+    params = dict()
+    if not requested_fields == [""]:
+        fields = ",".join(*[requested_fields])
+        params["requestedFields"] = fields
+
+    return await connection.get(endpoint, params)
 
 
-# GET Project Type List
-@requested_fields
-@get_item_list
-def get_project_type_list(
+async def get_project_type_list(
     connection: ConnectionManager, requested_fields: List[str] = [""]
 ):
-    return "/core/projecttypes"
+    endpoint = "/core/projecttypes"
+    params = dict()
+    if not requested_fields == [""]:
+        fields = ",".join(*[requested_fields])
+        params["requestedFields"] = fields
+
+    async for contact in list_paginator(connection, endpoint, params):
+        yield contact
 
 
-# GET Project Type Section
-@requested_fields
-@get_item
-def get_project_type_section(
+async def get_project_type_section(
     connection: ConnectionManager,
     project_type_id: int,
     section_selector: str,
     requested_fields: List[str] = [""],
 ):
-    return f"core/projecttypes/{project_type_id}/sections/{section_selector}"
+    endpoint = f"/core/projecttypes/{project_type_id}/sections/{section_selector}"
+    params = dict()
+    if not requested_fields == [""]:
+        fields = ",".join(*[requested_fields])
+        params["requestedFields"] = fields
+
+    return await connection.get(endpoint, params)
 
 
 # GET Project Type Section List
-@requested_fields
-@get_item_list
-def get_project_type_section_list(
+async def get_project_type_section_list(
     connection: ConnectionManager,
     project_type_id: int,
     requested_fields: List[str] = [""],
 ):
-    return f"core/projecttypes/{project_type_id}/sections"
+    endpoint = f"/core/projecttypes/{project_type_id}/sections"
+    params = dict()
+    if not requested_fields == [""]:
+        fields = ",".join(*[requested_fields])
+        params["requestedFields"] = fields
+
+    return await connection.get(endpoint, params)
 
 
 # GET Project Type Phase List
-@requested_fields
-@get_item_list
-def get_project_type_phase_list(
+async def get_project_type_phase_list(
     connection: ConnectionManager,
     project_type_id: int,
     requested_fields: List[str] = [""],
 ):
-    return f"core/projecttypes/{project_type_id}/phases"
+    endpoint = f"core/projecttypes/{project_type_id}/phases"
+    params = dict()
+    if not requested_fields == [""]:
+        fields = ",".join(*[requested_fields])
+        params["requestedFields"] = fields
+
+    return await connection.get(endpoint, params)
 
 
-@get_item
+# GET Org Info
 async def get_org_info(
     connection: ConnectionManager,
+    requested_fields: List[str] = [""],
 ):
-    return "/core/users/me"
+    endpoint = "/core/users/me"
+    params = dict()
+    if not requested_fields == [""]:
+        fields = ",".join(*[requested_fields])
+        params["requestedFields"] = fields
+
+    return await connection.get(endpoint, params)
