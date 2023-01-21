@@ -5,3 +5,4 @@ from .project import *
 from .project_types import *
 from .collections import *
 from .forms import *
+from .notes import *

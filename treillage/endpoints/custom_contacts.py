@@ -15,6 +15,7 @@ async def get_contact_metadata(connection: ConnectionManager):
 
 
 # POST Create Custom Contact
-async def create_custom_contact(connection: ConnectionManager, body=Contact):
+async def create_custom_contact(connection: ConnectionManager, contact=Contact):
     endpoint = f"/core/custom-contacts"
-    return await connection.post(endpoint, body.build_body_custom(), {})
+    body = contact.build_body_custom()
+    return await connection.post(endpoint, body, {})

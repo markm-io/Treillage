@@ -87,15 +87,15 @@ class Contact:
                         raise TreillageValidationError(
                             f"State field cannot be > 2 characters: " + item["state"]
                         )
-
                 if self.metadata:
-                    if key == "addresses":
-                        mode = "address"
-                    if key == "phones":
-                        mode = "phone"
-                    if key == "emails":
-                        mode = "email"
 
+                    mode = (
+                        "address"
+                        if key == "addresses"
+                        else "phone"
+                        if key == "phones"
+                        else "email"
+                    )
                     labelAllowedValues = next(
                         item for item in self.metadata if item["selector"] == key
                     )["allowedValues"]
