@@ -15,7 +15,7 @@ async def get_form(
     section_selector: str,
     requested_fields: List[str] = [""],
 ):
-    endpoint = f"/core/project/{project_id}"
+    endpoint = f"/core/projects/{project_id}/forms/{section_selector}"
     params = dict()
     if not requested_fields == [""]:
         fields = ",".join(*[requested_fields])
