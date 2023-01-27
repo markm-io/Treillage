@@ -5,8 +5,8 @@ from .. import TreillageValidationError
 class Contact:
     def __init__(
         self,
-        firstName: str,
         metadata: List[dict],
+        firstName: str = "",
         middleName: str = "",
         lastName: str = "",
         nickname: str = "",
