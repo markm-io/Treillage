@@ -9,6 +9,7 @@ class DataObject:
         self.fieldProcess = {
             "String": self.processString,
             "Currency": self.processCurrency,
+            "Percent": self.processPercent,
             "Integer": self.processInteger,
             "Text": self.processText,
             "Boolean": self.processBoolean,
@@ -36,6 +37,9 @@ class DataObject:
         self._object[key] = cell
 
     def processCurrency(self, key, cell, **kwargs):
+        self._object[key] = cell
+
+    def processPercent(self, key, cell, **kwargs):
         self._object[key] = cell
 
     def processInteger(self, key, cell, **kwargs):
@@ -76,6 +80,7 @@ class DataObject:
 
     def build(self):
         customFields = self.sectionFields
+
         for key, value in self._data.items():
             if value == "":
                 continue
@@ -86,6 +91,9 @@ class DataObject:
                 subKey = key.split(".")[1]
             key = key.split(".")[0]
             # TO-DO: Add detection of field selector typos, etc.
+            if key not in [field["fieldSelector"] for field in customFields]:
+                print(f"Field selector {key} not found in section fields.")
+                raise SyntaxError
             field = next(
                 field for field in customFields if field["fieldSelector"] == key
             )
