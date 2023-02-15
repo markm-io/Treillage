@@ -2,6 +2,8 @@ from typing import List, Union
 from .. import ConnectionManager
 from ..classes import DataObject, Identifier
 from .list_paginator import list_paginator
+from treillage import TreillageValidationException
+import json
 
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 #                              Collections
@@ -48,8 +50,10 @@ async def create_collection_item(
         proj_id = project_id
 
     endpoint = f"/core/projects/{proj_id}/collections/{section_selector}/"
-    body = dict(dataObject=data_object.body())
-
+    data = data_object.body()
+    if data == {}:
+        raise TreillageValidationException("Body is empty.")
+    body = dict(dataObject=data)
     return await connection.post(endpoint, body)
 
 
@@ -72,6 +76,26 @@ async def update_collection_item(
         col_id = project_id
 
     endpoint = f"/core/projects/{proj_id}/collections/{section_selector}/{col_id}"
-    body = data_object.body()
+    data = data_object.body()
+    if data == {}:
+        raise TreillageValidationException("Body is empty.")
+    body = dict(dataObject=data)
+    print(json.dumps(body, indent=4))
+    # return await connection.patch(endpoint, body)
 
-    return await connection.patch(endpoint, body)
+
+# GET Get Collection Items
+async def get_collection_item_list(
+    connection: ConnectionManager,
+    project_id: Union[Identifier, int],
+    section_selector: str,
+    requested_fields: List[str] = [""],
+):
+    endpoint = f"/core/projects/{project_id}/collections/{section_selector}"
+    params = dict()
+    if not requested_fields == [""]:
+        fields = ",".join(*[requested_fields])
+        params["requestedFields"] = fields
+
+    async for item in list_paginator(connection, endpoint, params):
+        yield item

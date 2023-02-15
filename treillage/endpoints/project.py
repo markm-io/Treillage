@@ -2,6 +2,7 @@ from typing import List, Union
 from .. import ConnectionManager
 from ..classes import Project
 from .list_paginator import list_paginator
+import json
 
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 #                              Projects
@@ -60,5 +61,15 @@ async def create_project(
 ):
     project = vars(project)
     endpoint = f"/core/projects"
-
     return await connection.post(endpoint, project)
+
+
+## MOVE THIS SOMEWHERE ELSE!!
+# POST Toggle Section Visibility
+async def update_section_visibility(
+    connection: ConnectionManager,
+    project_id: int,
+    body: dict,
+):
+    endpoint = f"/core/projects/{project_id}/sectionvisibility"
+    return await connection.post(endpoint, body)

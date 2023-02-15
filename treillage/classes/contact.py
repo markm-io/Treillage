@@ -1,5 +1,5 @@
 from typing import List, Dict
-from .. import TreillageValidationError
+from .. import TreillageValidationException
 
 
 class Contact:
@@ -15,9 +15,9 @@ class Contact:
         fromCompany: str = "",
         jobTitle: str = "",
         department: str = "",
-        isSingleName: bool = True,
-        isArchived: bool = False,
-        isDeceased: bool = False,
+        isSingleName: bool = "",
+        isArchived: bool = "",
+        isDeceased: bool = "",
         birthdate: str = "",
         deathdate: str = "",
         addresses: List[dict] = [],
@@ -66,25 +66,48 @@ class Contact:
         phoneFields = "number notes phoneLabel phoneLabelID".split()
         emailFields = "address notes emailLabel emailLabelId".split()
 
+        def processCustomFields():
+            for key, value in self.customFields.items():
+                if value is None or value == "":
+                    continue
+                try:
+                    field = next(x for x in self.metadata if x["selector"] == key)
+                    action = next(
+                        iter(
+                            field["action"].split("|")
+                        )  # "action": "UPDATE|REMOVE" / "actions": "ADD|REMOVE"
+                    )
+                    if field.get("allowedValues"):
+                        allowedValues = field["allowedValues"]
+                        if value not in allowedValues:
+                            raise TreillageValidationException(
+                                f"{value} is an invalid value for {key}. Allowed values are {allowedValues}"
+                            )
+                    addAction(key, action, value)
+                except:
+                    raise TreillageValidationException(
+                        f"Invalid custom field: {key}={value}"
+                    )
+
         def processAddressEmailPhone(key, value, fields):
             if not isinstance(value, List):
-                raise TreillageValidationError(f"{key} must be a list.")
+                raise TreillageValidationException(f"{key} must be a list.")
 
             for item in value:
 
                 if not isinstance(item, Dict):
-                    raise TreillageValidationError(
+                    raise TreillageValidationException(
                         f"'{key}' must be a list of dictionaries"
                     )
 
                 if not set(item.keys()).issubset(fields):
-                    raise TreillageValidationError(
+                    raise TreillageValidationException(
                         f"{key} includes invalid fields:" + f"{item.keys()}"
                     )
 
                 if item.get("state"):
                     if len(item["state"]) > 2:
-                        raise TreillageValidationError(
+                        raise TreillageValidationException(
                             f"State field cannot be > 2 characters: " + item["state"]
                         )
                 if self.metadata:
@@ -100,44 +123,53 @@ class Contact:
                         item for item in self.metadata if item["selector"] == key
                     )["allowedValues"]
 
-                    # validate LabelID
-                    if item.get(f"{mode}LabelID"):
-                        if not item[f"{mode}LabelID"] in [
-                            x[f"{mode}]LabelID"] for x in labelAllowedValues
+                    labelIdKey = f"{mode}LabelID"
+                    labelKey = f"{mode}Label"
+
+                    """
+                    # removing this because I never want to map a label to a labelID
+                    # validate LabelID if provided
+                    if item.get(labelIdKey):
+                        if not item[labelIdKey] in [
+                            x[labelIdKey] for x in labelAllowedValues
                         ]:
-                            raise TreillageValidationError(
-                                f"{mode}LabelID is not valid: {item[f'{mode}LabelID']}"
+                            raise TreillageValidationException(
+                                labelIdKey + " is not valid: " + item[labelIdKey]
                             )
+                    """
                     # Replace label with labelID
-                    if item.get(f"{mode}Label"):
-                        if item[f"{mode}Label"] in [
-                            x["name"] for x in labelAllowedValues
-                        ]:
-                            item[f"{mode}LabelID"] = next(
+                    if item.get(labelKey):
+                        if item[labelKey] in [x["name"] for x in labelAllowedValues]:
+                            item[labelIdKey] = next(
                                 x
                                 for x in labelAllowedValues
-                                if x["name"] == item[f"{mode}Label"]
-                            )[f"{mode}LabelID"]
-                            del item[f"{mode}Label"]
+                                if x["name"] == item[labelKey]
+                            )[labelIdKey]
+                            del item[labelKey]
                         else:
-                            invalidLabel = item[f"{mode}Label"]
-                            raise TreillageValidationError(
+                            invalidLabel = item[labelKey]
+                            raise TreillageValidationException(
                                 f"{mode} label is not valid: {invalidLabel}"
                             )
-                # if address/phone/email passed validation, add it to the body
+                    # if address/phone/email passed validation, add it to the body
+                    print(mode, labelKey, item)
+                print("action:", key, item)
                 addAction(key, "ADD", item)
 
         # Begin processing arguments:
+
         for key, value in arguments:
 
             if key in standardStringFields and value:
                 addAction(key, "UPDATE", value)
 
             if key in standardBoolFields:
+                if value is None or value == "":  # IMPORTANT for PATCH requests
+                    continue
                 if isinstance(value, bool):
                     addAction(key, "UPDATE", value)
                 else:
-                    raise TreillageValidationError(f"{key}: {value} is not a bool")
+                    raise TreillageValidationException(f"{key}: {value} is not a bool")
 
             if key == "hashtags" and value:
                 try:
@@ -145,7 +177,7 @@ class Contact:
                     for tag in tags:
                         addAction("hashtags", "ADD", tag)
                 except:
-                    raise TreillageValidationError(f"Invalid hashtags: {value}")
+                    raise TreillageValidationException(f"Invalid hashtags: {value}")
 
             if key == "addresses" and value:
                 processAddressEmailPhone(key, value, addressFields)
@@ -156,40 +188,20 @@ class Contact:
             if key == "emails" and value:
                 processAddressEmailPhone(key, value, emailFields)
 
-            if self.metadata:
-                if key == "personTypes" and value:
-                    personTypes = value.split(", ")
-                    allowedTypes = next(
-                        item for item in self.metadata if item["selector"] == key
-                    )["allowedValues"]
-                    for personType in personTypes:
-                        try:
-                            id = next(
-                                x for x in allowedTypes if x["name"] == personType
-                            )["value"]
-                        except:
-                            raise TreillageValidationError(
-                                f"Invalid personType: {personType}"
-                            )
-                        addAction(key, "ADD", id)
-
-                if key.startswith("custom."):
+            if key == "personTypes" and value:
+                personTypes = value.split(", ")
+                allowedTypes = next(
+                    item for item in self.metadata if item["selector"] == key
+                )["allowedValues"]
+                for personType in personTypes:
                     try:
-                        field = next(x for x in self.metadata if x["selector"] == key)
-                        action = next(
-                            iter(
-                                field["action"].split("|")
-                            )  # "action": "UPDATE|REMOVE" / "actions": "ADD|REMOVE"
-                        )
-                        if field.get("allowedValues"):
-                            allowedValues = field["allowedValues"]
-                            if value not in allowedValues:
-                                raise TreillageValidationError(
-                                    f"{value} is an invalid value for {key}. Allowed values are {allowedValues}"
-                                )
-                        addAction(key, action, value)
+                        id = next(x for x in allowedTypes if x["name"] == personType)[
+                            "value"
+                        ]
                     except:
-                        raise TreillageValidationError(
-                            f"Invalid custom field: {key}={value}"
+                        raise TreillageValidationException(
+                            f"Invalid personType: {personType}"
                         )
+                    addAction(key, "ADD", id)
+        processCustomFields()
         return body

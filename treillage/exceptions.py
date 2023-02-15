@@ -14,7 +14,10 @@ class TreillageHTTPException(TreillageException):
         self.code = code
         if not msg:
             msg = f"Received non-2xx HTTP Status Code {code}"
-        super(TreillageHTTPException, self).__init__(msg=msg, url=url, )
+        super(TreillageHTTPException, self).__init__(
+            msg=msg,
+            url=url,
+        )
 
 
 class TreillageRateLimitException(TreillageHTTPException):
@@ -27,8 +30,10 @@ class TreillageRateLimitException(TreillageHTTPException):
 
 class TreillageTypeError(TreillageException, TypeError):
     def __init__(self, expected_type, received_type):
-        msg = (f"Type {expected_type} required in API definition, " +
-               f"but received {received_type}")
+        msg = (
+            f"Type {expected_type} required in API definition, "
+            + f"but received {received_type}"
+        )
         super(TreillageTypeError, self).__init__(msg=msg)
 
 
@@ -38,10 +43,9 @@ class TreillageValueError(TreillageException, ValueError):
             msg = "Given parameter does not meet argument requirements"
         super(TreillageValueError, self).__init__(msg=msg)
 
-class TreillageValidationError(TreillageException):
+
+class TreillageValidationException(TreillageException):
     def __init__(self, msg=None):
         if not msg:
-            msg = "Given parameter does not meet argument requirements"
-        super(TreillageValidationError, self).__init__(msg=msg)
-
-
+            msg = f"Data does not match org schema"
+        super(TreillageValidationException, self).__init__(msg=msg)

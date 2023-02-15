@@ -2,6 +2,8 @@ from typing import List, Union
 from .. import ConnectionManager
 from ..classes import DataObject, Identifier
 from .list_paginator import list_paginator
+from treillage import TreillageValidationException
+import json
 
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 #                              Forms
@@ -37,5 +39,7 @@ async def update_form(
     else:
         id = project_id
     endpoint = f"/core/projects/{id}/forms/{section_selector}"
+    if body == {}:
+        raise TreillageValidationException("Body is empty.")
 
     return await connection.patch(endpoint, body)

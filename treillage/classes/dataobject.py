@@ -1,4 +1,4 @@
-from treillage import TreillageValidationError
+from treillage import TreillageValidationException
 
 
 class DataObject:
@@ -18,6 +18,7 @@ class DataObject:
             "Dropdown": self.processDropdown,
             "PersonLink": self.processPersonLink,
             "Deadline": self.processDeadline,
+            "MultiSelectList": self.processMultiSelectList,
         }
         self._dataObject = {}
         self.build()
@@ -29,7 +30,9 @@ class DataObject:
     def validate(self):
         for key, cell in self._data.items():
             if not key in [field["fieldSelector"] for field in self.sectionFields]:
-                raise TreillageValidationError(f"Invalid value for {key}: {cell}.")
+                raise TreillageValidationException(
+                    msg=f"Invalid value for {key}: {cell}."
+                )
 
     # TODO: add additional data validation and cleanup for these field types (e.g. convert "Yes" to `true`)
     # also, the **kwargs seem to be a mess....?
@@ -63,7 +66,9 @@ class DataObject:
         else:
             # Filevine will accept ANY string, and it will appear on reports, but will cause a glitch on the front end. This is a safety measure.
             # TO-DO: Raise an exception here, skip row, add to log.
-            return None
+            raise TreillageValidationException(
+                msg=f"{cell} is not a valid dropdown option for {key}"
+            )
 
     def processPersonLink(self, key, cell, **kwargs):
         # note: this will only work for NATIVE IDS as Filevine API v2 cannot handle partner IDs for person fields.
@@ -77,6 +82,14 @@ class DataObject:
             self._object[key]["due"] = {"dateValue": cell.strftime("%m/%d/%Y")}
         if subKey == "done":
             self._object[key]["due"] = {"doneDate": cell.strftime("%m/%d/%Y")}
+
+    def processMultiSelectList(self, key, cell, dropdownItems, **kwargs):
+        if all(item in dropdownItems for item in cell.split(",")):
+            self._object[key] = [item for item in cell.split(",")]
+        else:
+            raise TreillageValidationException(
+                msg=f"{cell} is not a valid dropdown option for {key}"
+            )
 
     def build(self):
         customFields = self.sectionFields
