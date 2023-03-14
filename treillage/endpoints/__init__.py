@@ -6,3 +6,4 @@ from .project_types import *
 from .collections import *
 from .forms import *
 from .notes import *
+from .folders import *

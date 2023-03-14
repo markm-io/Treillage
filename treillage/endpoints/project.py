@@ -15,7 +15,7 @@ async def get_project(
     project_id: int,
     requested_fields: List[str] = [""],
 ):
-    endpoint = f"/core/project/{project_id}"
+    endpoint = f"/core/projects/{project_id}"
     params = dict()
     if not requested_fields == [""]:
         fields = ",".join(*[requested_fields])

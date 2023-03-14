@@ -15,6 +15,7 @@ class DataObject:
             "Boolean": self.processBoolean,
             "Url": self.processUrl,
             "Date": self.processDate,
+            "IncidentDate": self.processDate,
             "Dropdown": self.processDropdown,
             "PersonLink": self.processPersonLink,
             "Deadline": self.processDeadline,
@@ -29,7 +30,10 @@ class DataObject:
 
     def validate(self):
         for key, cell in self._data.items():
-            if not key in [field["fieldSelector"] for field in self.sectionFields]:
+            if not key.split(".")[0] in [
+                field["fieldSelector"] for field in self.sectionFields
+            ]:
+                print(self.sectionFields)
                 raise TreillageValidationException(
                     msg=f"Invalid value for {key}: {cell}."
                 )
@@ -43,7 +47,7 @@ class DataObject:
         self._object[key] = cell
 
     def processPercent(self, key, cell, **kwargs):
-        self._object[key] = cell
+        self._object[key] = cell * 100
 
     def processInteger(self, key, cell, **kwargs):
         self._object[key] = cell
@@ -79,9 +83,9 @@ class DataObject:
         if not key in self._object:
             self._object[key] = {}
         if subKey == "due":
-            self._object[key]["due"] = {"dateValue": cell.strftime("%m/%d/%Y")}
-        if subKey == "done":
-            self._object[key]["due"] = {"doneDate": cell.strftime("%m/%d/%Y")}
+            self._object[key]["dateValue"] = cell.strftime("%m/%d/%Y")
+        if subKey == "done" and cell != "":
+            self._object[key]["doneDate"] = cell.strftime("%m/%d/%Y")
 
     def processMultiSelectList(self, key, cell, dropdownItems, **kwargs):
         if all(item in dropdownItems for item in cell.split(",")):

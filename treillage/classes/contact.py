@@ -60,11 +60,9 @@ class Contact:
 
         standardStringFields = "firstName middleName lastName nickname prefix suffix fromCompany jobTitle department birthdate deathdate".split()
         standardBoolFields = "isSingleName isArchived isDeceased".split()
-        addressFields = (
-            "line1 line2 city state zip notes addressLabel addressLabelID".split()
-        )
-        phoneFields = "number notes phoneLabel phoneLabelID".split()
-        emailFields = "address notes emailLabel emailLabelId".split()
+        addressFields = "line1 line2 city state zip notes addressLabel".split()
+        phoneFields = "number notes phoneLabel".split()
+        emailFields = "address notes emailLabel".split()
 
         def processCustomFields():
             for key, value in self.customFields.items():
@@ -152,8 +150,6 @@ class Contact:
                                 f"{mode} label is not valid: {invalidLabel}"
                             )
                     # if address/phone/email passed validation, add it to the body
-                    print(mode, labelKey, item)
-                print("action:", key, item)
                 addAction(key, "ADD", item)
 
         # Begin processing arguments:

@@ -24,10 +24,10 @@ async def get_collection_item(
         proj_id = project_id.native
     else:
         proj_id = project_id
-    if isinstance(project_id, Identifier):
-        col_id = project_id.native
+    if isinstance(collection_item_id, Identifier):
+        col_id = collection_item_id.native
     else:
-        col_id = project_id
+        col_id = collection_item_id
     if not requested_fields == [""]:
         fields = ",".join(*[requested_fields])
         params["requestedFields"] = fields

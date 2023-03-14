@@ -41,5 +41,4 @@ async def update_form(
     endpoint = f"/core/projects/{id}/forms/{section_selector}"
     if body == {}:
         raise TreillageValidationException("Body is empty.")
-
     return await connection.patch(endpoint, body)
