@@ -28,9 +28,12 @@ async def get_project(
 async def get_project_list(
     connection: ConnectionManager,
     requested_fields: List[str] = [""],
+    **kwargs
 ):
     endpoint = "/core/projects"
     params = dict()
+    for key, value in kwargs.items():
+        params[str(key)] = value
     if not requested_fields == [""]:
         fields = ",".join(*[requested_fields])
         params["requestedFields"] = fields

@@ -21,10 +21,13 @@ async def get_document(connection: ConnectionManager,
 
 async def get_document_list(connection: ConnectionManager,
                             requested_fields: List[str] = None,
-                            folder_id: str = None):
+                            folder_id: str = None,
+                            **kwargs):
     endpoint = "/core/documents/"
 
     params = dict()
+    for key, value in kwargs.items():
+        params[str(key)] = value
     if requested_fields:
         fields = ','.join(*[requested_fields])
         params['requestedFields'] = fields

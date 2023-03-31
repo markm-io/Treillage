@@ -25,10 +25,12 @@ async def get_project_type(
 
 
 async def get_project_type_list(
-    connection: ConnectionManager, requested_fields: List[str] = [""]
+    connection: ConnectionManager, requested_fields: List[str] = [""], **kwargs
 ):
     endpoint = "/core/projecttypes"
     params = dict()
+    for key, value in kwargs.items():
+        params[str(key)] = value
     if not requested_fields == [""]:
         fields = ",".join(*[requested_fields])
         params["requestedFields"] = fields
